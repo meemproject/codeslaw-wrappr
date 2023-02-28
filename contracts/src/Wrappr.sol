@@ -23,11 +23,21 @@ contract Wrappr is ERC1155Votes, Multicallable {
 
     event PermissionSet(address indexed operator, uint256 id, bool set);
 
-    event UserPermissionSet(address indexed operator, address indexed to, uint256 id, bool set);
+    event UserPermissionSet(
+        address indexed operator,
+        address indexed to,
+        uint256 id,
+        bool set
+    );
 
     event BaseURIset(address indexed operator, string baseURI);
 
-    event UserURIset(address indexed operator, address indexed to, uint256 id, string uuri);
+    event UserURIset(
+        address indexed operator,
+        address indexed to,
+        uint256 id,
+        string uuri
+    );
 
     event MintFeeSet(address indexed operator, uint256 mintFee);
 
@@ -68,12 +78,21 @@ contract Wrappr is ERC1155Votes, Multicallable {
     }
 
     modifier onlyOwnerOfOrAdmin(uint256 id) virtual {
-        require(msg.sender == ownerOf[id] || msg.sender == admin, "NOT_AUTHORIZED");
+        require(
+            msg.sender == ownerOf[id] || msg.sender == admin,
+            "NOT_AUTHORIZED"
+        );
 
         _;
     }
 
-    function uri(uint256 id) public view override virtual returns (string memory) {
+    function uri(uint256 id)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
         string memory tokenURI = uris[id];
 
         if (bytes(tokenURI).length == 0) return baseURI;
@@ -138,8 +157,8 @@ contract Wrappr is ERC1155Votes, Multicallable {
     }
 
     function burn(
-        address from, 
-        uint256 id, 
+        address from,
+        uint256 id,
         uint256 amount
     ) public payable virtual {
         require(
@@ -164,10 +183,13 @@ contract Wrappr is ERC1155Votes, Multicallable {
     ) public payable virtual {
         address _owner = ownerOf[id];
 
-        require(msg.sender == _owner || manager[msg.sender] || msg.sender == admin, "NOT_AUTHORIZED");
+        require(
+            msg.sender == _owner || manager[msg.sender] || msg.sender == admin,
+            "NOT_AUTHORIZED"
+        );
 
         if (!registered[id]) registered[id] = true;
-        
+
         if (_owner == address(0) && (ownerOf[id] = owner) != address(0)) {
             emit OwnerOfSet(address(0), owner, id);
         }
@@ -180,7 +202,12 @@ contract Wrappr is ERC1155Votes, Multicallable {
         uint256 id,
         uint256 amount
     ) public payable virtual {
-        require(msg.sender == ownerOf[id] || manager[msg.sender] || msg.sender == admin, "NOT_AUTHORIZED");
+        require(
+            msg.sender == ownerOf[id] ||
+                manager[msg.sender] ||
+                msg.sender == admin,
+            "NOT_AUTHORIZED"
+        );
 
         __burn(from, id, amount);
     }
@@ -188,51 +215,66 @@ contract Wrappr is ERC1155Votes, Multicallable {
     /// -----------------------------------------------------------------------
     /// OWNER FUNCTIONS
     /// -----------------------------------------------------------------------
-    
+
     function setOwnerOf(address to, uint256 id)
         public
         payable
-        onlyOwnerOfOrAdmin(id)
         virtual
+        onlyOwnerOfOrAdmin(id)
     {
         ownerOf[id] = to;
 
         emit OwnerOfSet(msg.sender, to, id);
     }
 
-    function setTransferability(uint256 id, bool set) public payable onlyOwnerOfOrAdmin(id) virtual {
+    function setTransferability(uint256 id, bool set)
+        public
+        payable
+        virtual
+        onlyOwnerOfOrAdmin(id)
+    {
         transferable[id] = set;
 
         emit TransferabilitySet(msg.sender, id, set);
     }
 
-    function setPermission(uint256 id, bool set) public payable onlyOwnerOfOrAdmin(id) virtual {
+    function setPermission(uint256 id, bool set)
+        public
+        payable
+        virtual
+        onlyOwnerOfOrAdmin(id)
+    {
         permissioned[id] = set;
 
         emit PermissionSet(msg.sender, id, set);
     }
 
     function setUserPermission(
-        address to, 
-        uint256 id, 
+        address to,
+        uint256 id,
         bool set
-    ) public payable onlyOwnerOfOrAdmin(id) virtual {
+    ) public payable virtual onlyOwnerOfOrAdmin(id) {
         userPermissioned[to][id] = set;
 
         emit UserPermissionSet(msg.sender, to, id, set);
     }
 
-    function setURI(uint256 id, string calldata tokenURI) public payable onlyOwnerOfOrAdmin(id) virtual {
+    function setURI(uint256 id, string calldata tokenURI)
+        public
+        payable
+        virtual
+        onlyOwnerOfOrAdmin(id)
+    {
         uris[id] = tokenURI;
 
         emit URI(tokenURI, id);
     }
 
     function setUserURI(
-        address to, 
-        uint256 id, 
+        address to,
+        uint256 id,
         string calldata uuri
-    ) public payable onlyOwnerOfOrAdmin(id) virtual {
+    ) public payable virtual onlyOwnerOfOrAdmin(id) {
         userURI[to][id] = uuri;
 
         emit UserURIset(msg.sender, to, id, uuri);
@@ -242,18 +284,13 @@ contract Wrappr is ERC1155Votes, Multicallable {
     /// ADMIN FUNCTIONS
     /// -----------------------------------------------------------------------
 
-    function setManager(address to, bool set)
-        public
-        payable
-        onlyAdmin
-        virtual
-    {
+    function setManager(address to, bool set) public payable virtual onlyAdmin {
         manager[to] = set;
 
         emit ManagerSet(msg.sender, to, set);
     }
-    
-    function setAdmin(address _admin) public payable onlyAdmin virtual {
+
+    function setAdmin(address _admin) public payable virtual onlyAdmin {
         admin = _admin;
 
         emit AdminSet(msg.sender, _admin);
@@ -262,15 +299,15 @@ contract Wrappr is ERC1155Votes, Multicallable {
     function setBaseURI(string calldata _baseURI)
         public
         payable
-        onlyAdmin
         virtual
+        onlyAdmin
     {
         baseURI = _baseURI;
 
         emit BaseURIset(msg.sender, _baseURI);
     }
 
-    function setMintFee(uint256 _mintFee) public payable onlyAdmin virtual {
+    function setMintFee(uint256 _mintFee) public payable virtual onlyAdmin {
         mintFee = _mintFee;
 
         emit MintFeeSet(msg.sender, _mintFee);
@@ -279,8 +316,8 @@ contract Wrappr is ERC1155Votes, Multicallable {
     function claimFee(address to, uint256 amount)
         public
         payable
-        onlyAdmin
         virtual
+        onlyAdmin
     {
         assembly {
             if iszero(call(gas(), to, amount, 0, 0, 0, 0)) {
@@ -303,12 +340,16 @@ contract Wrappr is ERC1155Votes, Multicallable {
         uint256 id,
         uint256 amount,
         bytes calldata data
-    ) public payable override virtual {
+    ) public payable virtual override {
         super.safeTransferFrom(from, to, id, amount, data);
 
         require(transferable[id], "NONTRANSFERABLE");
 
-        if (permissioned[id]) require(userPermissioned[from][id] && userPermissioned[to][id], "NOT_PERMITTED");
+        if (permissioned[id])
+            require(
+                userPermissioned[from][id] && userPermissioned[to][id],
+                "NOT_PERMITTED"
+            );
 
         _moveDelegates(delegates(from, id), delegates(to, id), id, amount);
     }
@@ -319,7 +360,7 @@ contract Wrappr is ERC1155Votes, Multicallable {
         uint256[] calldata ids,
         uint256[] calldata amounts,
         bytes calldata data
-    ) public payable override virtual {
+    ) public payable virtual override {
         super.safeBatchTransferFrom(from, to, ids, amounts, data);
 
         // Storing these outside the loop saves ~15 gas per iteration.
@@ -332,7 +373,11 @@ contract Wrappr is ERC1155Votes, Multicallable {
 
             require(transferable[id], "NONTRANSFERABLE");
 
-            if (permissioned[id]) require(userPermissioned[from][id] && userPermissioned[to][id], "NOT_PERMITTED");
+            if (permissioned[id])
+                require(
+                    userPermissioned[from][id] && userPermissioned[to][id],
+                    "NOT_PERMITTED"
+                );
 
             _moveDelegates(delegates(from, id), delegates(to, id), id, amount);
 
