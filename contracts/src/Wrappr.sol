@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import {ERC1155Votes} from "./ERC1155Votes.sol";
 import {Multicallable} from "./Multicallable.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /// @title Wrappr
 /// @author KaliCo LLC
@@ -53,6 +54,7 @@ contract Wrappr is ERC1155Votes, Multicallable {
 
     uint256 internal mintFee;
 
+    // Changed this from the original wrappr contract so that we now treat the admin as any token holder of a the admin contract address
     address public admin;
 
     mapping(uint256 => address) public ownerOf;
@@ -72,18 +74,23 @@ contract Wrappr is ERC1155Votes, Multicallable {
     mapping(address => mapping(uint256 => string)) public userURI;
 
     modifier onlyAdmin() virtual {
-        require(msg.sender == admin, "NOT_ADMIN");
+        require(IERC721(admin).balanceOf(msg.sender) > 0, "NOT_ADMIN");
 
         _;
     }
 
     modifier onlyOwnerOfOrAdmin(uint256 id) virtual {
         require(
-            msg.sender == ownerOf[id] || msg.sender == admin,
+            msg.sender == ownerOf[id] ||
+                IERC721(admin).balanceOf(msg.sender) > 0,
             "NOT_AUTHORIZED"
         );
 
         _;
+    }
+
+    function isAdmin() private view returns (bool) {
+        return IERC721(admin).balanceOf(msg.sender) > 0;
     }
 
     function uri(uint256 id)
@@ -184,7 +191,7 @@ contract Wrappr is ERC1155Votes, Multicallable {
         address _owner = ownerOf[id];
 
         require(
-            msg.sender == _owner || manager[msg.sender] || msg.sender == admin,
+            msg.sender == _owner || manager[msg.sender] || isAdmin(),
             "NOT_AUTHORIZED"
         );
 
@@ -203,9 +210,7 @@ contract Wrappr is ERC1155Votes, Multicallable {
         uint256 amount
     ) public payable virtual {
         require(
-            msg.sender == ownerOf[id] ||
-                manager[msg.sender] ||
-                msg.sender == admin,
+            msg.sender == ownerOf[id] || manager[msg.sender] || isAdmin(),
             "NOT_AUTHORIZED"
         );
 

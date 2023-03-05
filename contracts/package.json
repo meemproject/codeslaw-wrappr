@@ -10,6 +10,7 @@
     "solhint": "solhint --config ./.solhint.json 'contracts/**/*.sol' --fix",
     "lint": "yarn run prettier && npm run solhint",
     "deploy": "hardhat xdeploy",
+    "verify": "hardhat etherscan",
     "start": "hardhat node",
     "watch": "concurrently -r --kill-others \"chokidar 'src/**/*.sol' -c 'yarn build'\""
   },
